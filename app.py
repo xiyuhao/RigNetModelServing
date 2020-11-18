@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, flash
 import mlflow.pyfunc
 import pandas as pd
 import json
@@ -20,6 +20,7 @@ def meta_data():
 	return jsonify(load_meta_data)
 
 # Prediction endpoint
+# @app.route('/predict')
 @app.route('/predict', methods=['POST'])
 def predict():
 	req = request.get_json()
@@ -27,11 +28,12 @@ def predict():
 	# Log the request
 	print({'request': req})
 
+
 	# Format the request data in a DataFrame
-	inf_df = np.array(req['data'])#pd.DataFrame(req['data'])
+	inf_df = pd.DataFrame(req['data'])
 
 	# Get model prediction - convert from np to list
-	pred = model.predict(inf_df).tolist()
+	pred = model.predict(inf_df.values).tolist()
 
 	# Log the prediction
 	print({'response': pred})
