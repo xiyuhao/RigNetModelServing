@@ -1,5 +1,5 @@
 {
   "version": "1.0",
   "description": "This is a simple Titanic survivors predictor",
-  "input": "The expected input to the prediction function is an array with 6 items [Pclass, Sex, Age, SibSp, Parch, Fare]"
+  "input": "The expected input to the prediction function is a np.array with 6 items np.array([Pclass, Sex, Age, SibSp, Parch, Fare])"
 }

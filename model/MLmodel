@@ -7,10 +7,10 @@ flavors:
       state_dict:
         path: artifacts/titanic_model.pt
         uri: Model/titanic_model.pt
-    cloudpickle_version: 1.3.0
+    cloudpickle_version: 1.6.0
     code: code
     env: conda.yaml
     loader_module: mlflow.pyfunc.model
     python_model: python_model.pkl
-    python_version: 3.7.6
-utc_time_created: '2020-11-18 00:01:48.250676'
+    python_version: 3.7.9
+utc_time_created: '2020-11-18 15:51:32.932683'
