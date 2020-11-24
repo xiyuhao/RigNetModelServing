@@ -1,0 +1,16 @@
+flavors:
+  python_function:
+    artifacts:
+      label_encoder:
+        path: artifacts/label_encoder.pkl
+        uri: Model/label_encoder.pkl
+      state_dict:
+        path: artifacts/titanic_model.pt
+        uri: Model/titanic_model.pt
+    cloudpickle_version: 1.6.0
+    code: code
+    env: conda.yaml
+    loader_module: mlflow.pyfunc.model
+    python_model: python_model.pkl
+    python_version: 3.7.9
+utc_time_created: '2020-11-18 15:51:32.932683'

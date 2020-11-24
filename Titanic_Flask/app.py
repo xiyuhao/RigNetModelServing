@@ -4,6 +4,10 @@ import pandas as pd
 import numpy as np
 import json
 
+# from OpenSSL import SSL
+# context = SSL.Context(SSL.SSLv23_METHOD)
+# context.use_privatekey_file('web.key')
+# context.use_certificate_file('web.crt')
 # Name of the apps module package
 app = Flask(__name__)
 
@@ -40,4 +44,8 @@ def predict():
 	# Return prediction as reponse
 	return jsonify(pred)
 
-app.run(host='0.0.0.0', port=5000, debug=True)
+# app.run(host='0.0.0.0', port=5000, debug=True)
+
+if __name__ == "__main__":
+	# app.run(host='0.0.0.0', port=5000, ssl_context=context)
+    app.run(host='0.0.0.0', port=5000, ssl_context="adhoc")
