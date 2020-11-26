@@ -372,97 +372,84 @@ def tranfer_to_ori_mesh(filename_ori, filename_remesh, pred_rig):
     return tranfer_rig
 
 
-if __name__ == '__main__':
-    input_folder = "quick_start/"
 
-    # downsample_skinning is used to speed up the calculation of volumetric geodesic distance
-    # and to save cpu memory in skinning calculation.
-    # Change to False to be more accurate but less efficient.
-    downsample_skinning = True
 
-    # load all weights
-    print("loading all networks...")
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+input_folder = "quick_start/"
 
-    jointNet = JOINTNET()
-    jointNet.to(device)
-    jointNet.eval()
-    jointNet_checkpoint = torch.load('checkpoints/gcn_meanshift/model_best.pth.tar', map_location='cpu')
-    jointNet.load_state_dict(jointNet_checkpoint['state_dict'])
-    print("     joint prediction network loaded.")
+# downsample_skinning is used to speed up the calculation of volumetric geodesic distance
+# and to save cpu memory in skinning calculation.
+# Change to False to be more accurate but less efficient.
+downsample_skinning = True
 
-    rootNet = ROOTNET()
-    rootNet.to(device)
-    rootNet.eval()
-    rootNet_checkpoint = torch.load('checkpoints/rootnet/model_best.pth.tar', map_location='cpu')
-    rootNet.load_state_dict(rootNet_checkpoint['state_dict'])
-    print("     root prediction network loaded.")
+# load all weights
+print("loading all networks...")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    boneNet = BONENET()
-    boneNet.to(device)
-    boneNet.eval()
-    boneNet_checkpoint = torch.load('checkpoints/bonenet/model_best.pth.tar', map_location='cpu')
-    boneNet.load_state_dict(boneNet_checkpoint['state_dict'])
-    print("     connection prediction network loaded.")
+jointNet = JOINTNET()
+jointNet.to(device)
+jointNet.eval()
+jointNet_checkpoint = torch.load('checkpoints/gcn_meanshift/model_best.pth.tar', map_location='cpu')
+jointNet.load_state_dict(jointNet_checkpoint['state_dict'])
+print("     joint prediction network loaded.")
 
-    skinNet = SKINNET(nearest_bone=5, use_Dg=True, use_Lf=True)
-    skinNet_checkpoint = torch.load('checkpoints/skinnet/model_best.pth.tar', map_location='cpu')
-    skinNet.load_state_dict(skinNet_checkpoint['state_dict'])
-    skinNet.to(device)
-    skinNet.eval()
-    print("     skinning prediction network loaded.")
+rootNet = ROOTNET()
+rootNet.to(device)
+rootNet.eval()
+rootNet_checkpoint = torch.load('checkpoints/rootnet/model_best.pth.tar', map_location='cpu')
+rootNet.load_state_dict(rootNet_checkpoint['state_dict'])
+print("     root prediction network loaded.")
 
-    # Here we provide 16~17 examples. For best results, we will need to override the learned bandwidth and its associated threshold
-    # To process other input characters, please first try the learned bandwidth (0.0429 in the provided model), and the default threshold 1e-5.
-    # We also use these two default parameters for processing all test models in batch.
+boneNet = BONENET()
+boneNet.to(device)
+boneNet.eval()
+boneNet_checkpoint = torch.load('checkpoints/bonenet/model_best.pth.tar', map_location='cpu')
+boneNet.load_state_dict(boneNet_checkpoint['state_dict'])
+print("     connection prediction network loaded.")
 
-    #model_id, bandwidth, threshold = "smith", None, 1e-5
-    # model_id, bandwidth, threshold = "17872", 0.045, 0.75e-5
-    model_id, bandwidth, threshold = "1", 0.045, 0.75e-5
-    #model_id, bandwidth, threshold = "8210", 0.05, 1e-5
-    #model_id, bandwidth, threshold = "8330", 0.05, 0.8e-5
-    #model_id, bandwidth, threshold = "9477", 0.043, 2.5e-5
-    #model_id, bandwidth, threshold = "17364", 0.058, 0.3e-5
-    #model_id, bandwidth, threshold = "15930", 0.055, 0.4e-5
-    #model_id, bandwidth, threshold = "8333", 0.04, 2e-5
-    #model_id, bandwidth, threshold = "8338", 0.052, 0.9e-5
-    #model_id, bandwidth, threshold = "3318", 0.03, 0.92e-5
-    #model_id, bandwidth, threshold = "15446", 0.032, 0.58e-5
-    #model_id, bandwidth, threshold = "1347", 0.062, 3e-5
-    #model_id, bandwidth, threshold = "11814", 0.06, 0.6e-5
-    #model_id, bandwidth, threshold = "2982", 0.045, 0.3e-5
-    #model_id, bandwidth, threshold = "2586", 0.05, 0.6e-5
-    #model_id, bandwidth, threshold = "8184", 0.05, 0.4e-5
-    #model_id, bandwidth, threshold = "9000", 0.035, 0.16e-5
+skinNet = SKINNET(nearest_bone=5, use_Dg=True, use_Lf=True)
+skinNet_checkpoint = torch.load('checkpoints/skinnet/model_best.pth.tar', map_location='cpu')
+skinNet.load_state_dict(skinNet_checkpoint['state_dict'])
+skinNet.to(device)
+skinNet.eval()
+print("     skinning prediction network loaded.")
 
-    # create data used for inferece
-    print("creating data for model ID {:s}".format(model_id))
-    mesh_filename = os.path.join(input_folder, '{:s}_remesh.obj'.format(model_id))
-    data, vox, surface_geodesic, translation_normalize, scale_normalize = create_single_data(mesh_filename)
-    data.to(device)
+# Here we provide 16~17 examples. For best results, we will need to override the learned bandwidth and its associated threshold
+# To process other input characters, please first try the learned bandwidth (0.0429 in the provided model), and the default threshold 1e-5.
+# We also use these two default parameters for processing all test models in batch.
 
-    print("predicting joints")
-    data = predict_joints(data, vox, jointNet, threshold, bandwidth=bandwidth,
-                          mesh_filename=mesh_filename.replace("_remesh.obj", "_normalized.obj"))
-    data.to(device)
-    print("predicting connectivity")
-    pred_skeleton = predict_skeleton(data, vox, rootNet, boneNet,
-                                     mesh_filename=mesh_filename.replace("_remesh.obj", "_normalized.obj"))
-    print("predicting skinning")
-    pred_rig = predict_skinning(data, pred_skeleton, skinNet, surface_geodesic,
-                                mesh_filename.replace("_remesh.obj", "_normalized.obj"),
-                                subsampling=downsample_skinning)
+model_id, bandwidth, threshold = "1", 0.045, 0.75e-5
 
-    # here we reverse the normalization to the original scale and position
-    pred_rig.normalize(scale_normalize, -translation_normalize)
+# create data used for inferece
+print("creating data for model ID {:s}".format(model_id))
+mesh_filename = os.path.join(input_folder, '{:s}_remesh.obj'.format(model_id))
+print(mesh_filename)
+print(create_single_data(mesh_filename))
 
-    print("Saving result")
-    if True:
-        # here we use original mesh tesselation (without remeshing)
-        mesh_filename_ori = os.path.join(input_folder, '{:s}_ori.obj'.format(model_id))
-        pred_rig = tranfer_to_ori_mesh(mesh_filename_ori, mesh_filename, pred_rig)
-        pred_rig.save(mesh_filename_ori.replace('.obj', '_rig.txt'))
-    else:
-        # here we use remeshed mesh
-        pred_rig.save(mesh_filename.replace('.obj', '_rig.txt'))
-    print("Done!")
+data, vox, surface_geodesic, translation_normalize, scale_normalize = create_single_data(mesh_filename)
+data.to(device)
+
+print("predicting joints")
+data = predict_joints(data, vox, jointNet, threshold, bandwidth=bandwidth,
+                      mesh_filename=mesh_filename.replace("_remesh.obj", "_normalized.obj"))
+data.to(device)
+print("predicting connectivity")
+pred_skeleton = predict_skeleton(data, vox, rootNet, boneNet,
+                                 mesh_filename=mesh_filename.replace("_remesh.obj", "_normalized.obj"))
+print("predicting skinning")
+pred_rig = predict_skinning(data, pred_skeleton, skinNet, surface_geodesic,
+                            mesh_filename.replace("_remesh.obj", "_normalized.obj"),
+                            subsampling=downsample_skinning)
+
+# here we reverse the normalization to the original scale and position
+pred_rig.normalize(scale_normalize, -translation_normalize)
+
+print("Saving result")
+if True:
+    # here we use original mesh tesselation (without remeshing)
+    mesh_filename_ori = os.path.join(input_folder, '{:s}_ori.obj'.format(model_id))
+    pred_rig = tranfer_to_ori_mesh(mesh_filename_ori, mesh_filename, pred_rig)
+    pred_rig.save(mesh_filename_ori.replace('.obj', '_rig.txt'))
+else:
+    # here we use remeshed mesh
+    pred_rig.save(mesh_filename.replace('.obj', '_rig.txt'))
+print("Done!")

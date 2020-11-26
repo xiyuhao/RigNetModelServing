@@ -1,0 +1,8 @@
+channels:
+- defaults
+dependencies:
+- python=3.7.9
+# - pip:
+  # - trimesh==3.8.14
+  # - "rtree>=0.8,<0.9"
+name: rignet

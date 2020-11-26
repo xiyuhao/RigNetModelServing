@@ -1,0 +1,5 @@
+{
+  "version": "1.0",
+  "description": "This is the deployment of RigNet method",
+  "input": "The expected input is an obj file"
+}
