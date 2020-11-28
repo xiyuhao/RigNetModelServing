@@ -15,10 +15,7 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-# app.config.from_object(Config)
-
-# from app import routes
-# from app import app
+# Install requirement
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -48,19 +45,64 @@ def meta_data():
 # Prediction endpoint
 @app.route('/predict', methods=['POST'])
 def predict():
+	print("Deleting previous files")
+	sandra = os.path.join(uploads, '1_normalized.binvox')
+	print(str(sandra))
+	try:
+		os.remove(os.path.join(uploads, '1_normalized.binvox') )
+	except:
+		print("No file: 1_normalized.binvox")
+
+	try:
+		os.remove(os.path.join(uploads, '1_normalized.mtl') )
+	except:
+		print("No file: 1_normalized.mtl")
+
+	try:
+		os.remove(os.path.join(uploads, '1_normalized.obj') )
+	except:
+		print("No file: 1_normalized.obj")
+
+	try:
+		os.remove(os.path.join(uploads, '1_normalized_simplified.mtl') )
+	except:
+		print("No file: 1_normalized_simplified.mtl")
+
+	try:
+		os.remove(os.path.join(uploads, '1_ori_rig.txt') )
+	except:
+		print("No file: 1_ori_rig.txt")
+
+	try:
+		os.remove(os.path.join(uploads, '1_remesh.obj') )
+	except:
+		print("No file: 1_remesh.obj")
+
 	remesh_file = request.files['remesh_file']
 	filename = secure_filename('1_remesh.obj')
 	remesh_file.save(os.path.join(uploads, filename))
-	import quick_start_cpu
-	quick_start_cpu
+
+	try:
+		import open3d as o3d
+	except:
+		os.system("echo Installing needed package")
+		os.system("sudo apt update")
+		os.system("sudo apt install libgl1-mesa-glx")
+
+
+	import quick_start_cpu_fun
+	quick_start_cpu_fun.runApp("1", 0.045, 0.75e-5)
 
 	f_output = open("quick_start/1_ori_rig.txt", "r")
 	output = f_output.read()
+
+
+
 
 	return output
 
 # app.run(host='0.0.0.0', port=5000, debug=True)
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, ssl_context="adhoc")
+    app.run(host='0.0.0.0', port=5000)#, ssl_context="adhoc")
 	# app.run(host='0.0.0.0', port=5000, ssl_context=('/etc/letsencrypt/live/api.logeo.co/cert.pem', '/etc/letsencrypt/live/api.logeo.co/key.pem') )
